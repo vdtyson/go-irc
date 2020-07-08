@@ -4,12 +4,15 @@ import (
 	"cloud.google.com/go/firestore"
 	"context"
 	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/auth"
 	"google.golang.org/api/option"
 )
 
 type App struct {
 	firebaseInstance *firebase.App
-	context          context.Context
+	authClient       *auth.Client
+	firestoreClient  *firestore.Client
+	authRepo         *AuthRepository
 }
 
 func NewAppInstance(ctx context.Context, config *firebase.Config, options ...option.ClientOption) (*App, error) {
@@ -18,9 +21,17 @@ func NewAppInstance(ctx context.Context, config *firebase.Config, options ...opt
 		return nil, err
 	}
 
-	return &App{firebaseInstance: fbApp, context: ctx}, nil
-}
+	authClient, err := fbApp.Auth(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-func (a *App) NewFirestoreClientInstance() (*firestore.Client, error) {
-	return a.firebaseInstance.Firestore(a.context)
+	firestoreClient, err := fbApp.Firestore(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	authRepo := &AuthRepository{firestoreClient: firestoreClient, authClient: authClient}
+
+	return &App{firebaseInstance: fbApp, authClient: authClient, firestoreClient: firestoreClient, authRepo: authRepo}, nil
 }

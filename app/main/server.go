@@ -2,21 +2,35 @@ package main
 
 import (
 	"context"
+	"github.com/gorilla/mux"
 	"google.golang.org/api/option"
 	"log"
+	"net/http"
 )
 
-func main() {
-	ctx := context.Background()
-	options := option.WithCredentialsFile(`C:\Users\Versilis\Desktop\Projects\go-irc\app\go-irc-firebase-adminsdk-e3m99-64808dbd66.json`)
-	app, err := NewAppInstance(ctx, nil, options)
-	if err != nil {
-		log.Fatalf("error initializing app:%v\n", err)
-	}
+var appInstance *App
+var router *mux.Router
 
-	firestoreClient, err := app.NewFirestoreClientInstance()
+func main() {
+	err := http.ListenAndServe(":8080", router)
 	if err != nil {
-		log.Fatalf("error initializing firestore:%v\n", err)
+		log.Fatal(err)
 	}
-	defer firestoreClient.Close()
+}
+func init() {
+	initAppInstance()
+	initRouter()
+}
+
+func initRouter() {
+	router = NewRouter()
+}
+
+func initAppInstance() {
+	options := option.WithCredentialsFile(`C:\Users\Versilis\Desktop\Projects\go-irc\app\go-irc-firebase-adminsdk-e3m99-64808dbd66.json`)
+	newAppInstance, err := NewAppInstance(context.Background(), nil, options)
+	if err != nil {
+		panic(err)
+	}
+	appInstance = newAppInstance
 }

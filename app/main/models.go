@@ -6,28 +6,12 @@ import (
 
 // hash tag for group chats ex: #test
 // direct message !@testuser@testuser2
-type DocModel interface {
-	Map() map[string]interface{}
-	ID() string
-}
 
 // users -> [uid]
 type User struct {
-	uid      string
-	isAdmin  bool
-	isBanned bool
-	username string
-}
-
-func (u *User) Map() map[string]interface{} {
-	return map[string]interface{}{
-		"isAdmin":  u.isAdmin,
-		"isBanned": u.isBanned,
-		"username": u.username,
-	}
-}
-func (u *User) ID() string {
-	return u.uid
+	IsAdmin  bool   `json:"isAdmin"`
+	IsBanned bool   `json:"isBanned"`
+	Username string `json:"username"`
 }
 
 // Channel user is member of
@@ -40,18 +24,7 @@ const (
 )
 
 type UserChannel struct {
-	channelName   string
-	privilegeType UserPrivilegeType
-}
-
-func (u *UserChannel) Map() map[string]interface{} {
-	return map[string]interface{}{
-		"channelName":   u.channelName,
-		"privilegeType": string(u.privilegeType),
-	}
-}
-func (u *UserChannel) ID() string {
-	return u.channelName
+	PrivilegeType UserPrivilegeType `json:"privilegeType"`
 }
 
 // channels -> [#channelname]
@@ -64,53 +37,28 @@ const (
 )
 
 type Channel struct {
-	channelName  string
-	accessType   ChannelAccessType
-	lastMessages map[string]map[string]interface{} // messageId as base map key; child map contains message attributes (message, senderId, timeSpent)
-}
-
-func (c *Channel) Map() map[string]interface{} {
-	return map[string]interface{}{
-		"accessType":   string(c.accessType),
-		"lastMessages": c.lastMessages, // messageId as base map key; child map contains message attributes (message, senderId, timeSpent)
-	}
-}
-func (c *Channel) ID() string {
-	return c.channelName
+	AccessType   ChannelAccessType `json:"accessType"`
+	LastMessages []*Message        `json:"lastMessages"` // messageId as base map key; child map contains message attributes (message, senderId, timeSpent)
 }
 
 // usernames -> [username]
 // doc has username as key to make unique; has a field that points to the uid
 type Username struct {
-	value string
-	uid   string
-}
-
-func (u *Username) Map() map[string]interface{} {
-	return map[string]interface{}{"uid": u.uid}
-}
-func (u *Username) ID() string {
-	return u.value
+	Uid string `json:"uid"`
 }
 
 // channelChats -> [channelName] -> messages -> [messageId] // channelChats holds messages of a specific channel based off channelName
 type Message struct {
-	messageId      string
-	value          string
-	senderId       string
-	senderUsername string
-	timeSent       time.Time
+	Value          string    `json:"message"`
+	SenderId       string    `json:"senderId"`
+	SenderUsername string    `json:"senderUsername"`
+	TimeSent       time.Time `json:"timeSent"`
 }
 
-func (m *Message) Map() map[string]interface{} {
-	return map[string]interface{}{
-		"message":        m.value,
-		"senderId":       m.senderId,
-		"senderUsername": m.senderUsername,
-		"timeSent":       m.timeSent,
-	}
-}
-
-func (m *Message) ID() string {
-	return m.messageId
+// Registration info for user
+type UserRegInfo struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	IsAdmin  bool   `json:"isAdmin"`
 }
