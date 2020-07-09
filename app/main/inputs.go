@@ -26,3 +26,9 @@ type MessageInput struct {
 type ChannelNameInput struct {
 	ChannelName string `json:"channelName"`
 }
+
+type KickUserInput struct {
+	ChannelName   string `json:"channelName"`
+	OwnerUsername string `json:"ownerUsername"`
+	UserToKick    string `json:"userToKick"`
+}

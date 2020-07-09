@@ -7,6 +7,7 @@ import (
 	"google.golang.org/api/option"
 	"log"
 	"net/http"
+	"os"
 )
 
 var appInstance *App
@@ -29,8 +30,9 @@ func initRouter() {
 	router = NewRouter()
 }
 
+// `C:\Users\Versilis\Desktop\Projects\go-irc\app\go-irc-firebase-adminsdk-e3m99-64808dbd66.json`
 func initAppInstance() {
-	options := option.WithCredentialsFile(`C:\Users\Versilis\Desktop\Projects\go-irc\app\go-irc-firebase-adminsdk-e3m99-64808dbd66.json`)
+	options := option.WithCredentialsFile(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
 	newAppInstance, err := NewAppInstance(context.Background(), nil, options)
 	if err != nil {
 		panic(err)

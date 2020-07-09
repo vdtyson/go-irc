@@ -243,3 +243,21 @@ func (c *ChannelRepository) NewMessage(ctx context.Context, messageInput Message
 
 	return nil
 }
+
+func (c *ChannelRepository) KickUser(ctx context.Context, input KickUserInput) error {
+	// check if kicker is admin of channel
+	// check if user exists in channel
+	// delete channel from userChannel and member from [channelName] -> member
+	channelRef := c.fsClient.Collection(CHANNELS_PATH).Doc(input.ChannelName)
+	_, err := channelRef.Get(ctx)
+	if err != nil {
+		return err
+	}
+
+	//kickerRef := c.fsClient.Collection(CHANNELS_PATH).Where("Username","==")'
+	return nil
+}
+
+// kick user
+// ban user from channel
+// add new user
