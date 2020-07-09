@@ -1,6 +1,9 @@
 package main
 
-import "github.com/gorilla/mux"
+import (
+	"github.com/gorilla/mux"
+	"net/http"
+)
 
 func NewRouter() *mux.Router {
 	router := mux.NewRouter()
@@ -16,5 +19,13 @@ func NewRouter() *mux.Router {
 	router.HandleFunc("/users/{username}/channels", GetUserChannelsHandler).Methods("GET")
 	// admin
 	router.HandleFunc("/admin/ban", BanUserHandler).Methods("PUT")
+
+	router.HandleFunc("/", HelloHandler).Methods("GET")
 	return router
+}
+
+func HelloHandler(w http.ResponseWriter, r *http.Request) {
+	{
+		w.Write([]byte("Welcome!"))
+	}
 }
