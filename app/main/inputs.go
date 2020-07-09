@@ -23,3 +23,6 @@ type MessageInput struct {
 }
 
 // http://localhost:8080/users/{username1}
+type ChannelNameInput struct {
+	ChannelName string `json:"channelName"`
+}

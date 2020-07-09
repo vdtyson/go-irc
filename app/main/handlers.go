@@ -6,6 +6,11 @@ import (
 	"net/http"
 )
 
+const (
+	JSON_PREFIX = ""
+	JSON_INDENT = "    "
+)
+
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	var userRegInfo UserRegInfo
@@ -56,5 +61,28 @@ func CreateDMChannelHandler(w http.ResponseWriter, r *http.Request) {
 	err := appInstance.channelRepo.CreateDirectMessageChannel(r.Context(), username1, username2)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+
+func GetAllMessagesHandler(w http.ResponseWriter, r *http.Request) {
+	var channelNameInput ChannelNameInput
+	err := json.NewDecoder(r.Body).Decode(&channelNameInput)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	messages, err := appInstance.channelRepo.GetAllChannelMessages(r.Context(), channelNameInput)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	data, err := json.MarshalIndent(messages, JSON_PREFIX, JSON_INDENT)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	_, err = w.Write(data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

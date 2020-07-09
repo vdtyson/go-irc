@@ -164,6 +164,30 @@ func (c *ChannelRepository) CreateGroupChannel(ctx context.Context, channelInput
 	return err
 }
 
+// http://localhost:8080/channels/{channelName}/messages/all
+func (c *ChannelRepository) GetAllChannelMessages(ctx context.Context, input ChannelNameInput) ([]*Message, error) {
+	messageRefs, err := c.fsClient.Collection(CHANNEL_CHATS_PATH).Doc(input.ChannelName).Collection(MESSAGES_PATH).DocumentRefs(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var messages []*Message
+	for _, messageRef := range messageRefs {
+		messageSnapshot, err := messageRef.Get(ctx)
+		if err != nil {
+			return nil, err
+		}
+		var message Message
+		err = messageSnapshot.DataTo(&message)
+		if err != nil {
+			return nil, err
+		}
+		messages = append(messages, &message)
+	}
+
+	return messages, nil
+}
+
 // http://localhost:8080/{channel}/message
 func (c *ChannelRepository) NewMessage(ctx context.Context, messageInput MessageInput) error {
 	chanChatsRef := c.fsClient.Collection(CHANNEL_CHATS_PATH).Doc(messageInput.ChannelName).Collection(MESSAGES_PATH)
