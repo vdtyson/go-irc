@@ -15,7 +15,11 @@ var router *mux.Router
 var user *auth.UserRecord
 
 func main() {
-	err := http.ListenAndServe(":8080", router)
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("$PORT must be set")
+	}
+	err := http.ListenAndServe(port, router)
 	if err != nil {
 		log.Fatal(err)
 	}
