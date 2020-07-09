@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -82,6 +83,26 @@ func GetAllMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = w.Write(data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func AddUserHandler(w http.ResponseWriter, r *http.Request) {
+	var addUserInput AddUserInput
+
+	err := json.NewDecoder(r.Body).Decode(&addUserInput)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if !IsPrivilegeType(addUserInput.PrivilegeType) {
+		http.Error(w, fmt.Errorf("value %s is an invalid privelegeType", addUserInput.PrivilegeType).Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = appInstance.channelRepo.AddUser(r.Context(), addUserInput)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

@@ -32,3 +32,10 @@ type KickUserInput struct {
 	OwnerUsername string `json:"ownerUsername"`
 	UserToKick    string `json:"userToKick"`
 }
+
+type AddUserInput struct {
+	ChannelName   string `json:"channelName"`
+	OwnerUsername string `json:"ownerUsername"`
+	UserToAdd     string `json:"userToAdd"`
+	PrivilegeType string `json:"privilegeType"`
+}

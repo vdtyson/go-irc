@@ -23,6 +23,14 @@ const (
 	MEMBER = UserPrivilegeType("MEMBER") // privileges: write
 )
 
+func IsPrivilegeType(value string) bool {
+	if value == string(OWNER) || value == string(MOD) || value == string(MEMBER) {
+		return true
+	} else {
+		return false
+	}
+}
+
 type UserChannel struct {
 	PrivilegeType UserPrivilegeType `json:"privilegeType"`
 }
