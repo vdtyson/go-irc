@@ -9,7 +9,7 @@ import (
 
 // users -> [uid]
 type User struct {
-	IsAdmin  bool   `json:"isAdmin"`
+	IsAdmin  bool   `json:"isUserAdmin"`
 	IsBanned bool   `json:"isBanned"`
 	Username string `json:"username"`
 }

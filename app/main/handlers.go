@@ -125,3 +125,26 @@ func GetUserChannelsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
+
+func BanUserHandler(w http.ResponseWriter, r *http.Request) {
+	var banUserInput BanUserInput
+
+	err := json.NewDecoder(r.Body).Decode(&banUserInput)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = appInstance.adminRepo.BanUser(r.Context(), banUserInput)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, err = w.Write([]byte(fmt.Sprintf("User %s was banned.", banUserInput.UserToBanUsername)))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+}
