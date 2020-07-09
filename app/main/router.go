@@ -25,7 +25,7 @@ func NewRouter() *mux.Router {
 }
 
 func HelloHandler(w http.ResponseWriter, r *http.Request) {
-	{
-		w.Write([]byte("Welcome!"))
-	}
+
+	w.Write([]byte("Welcome!"))
+
 }
