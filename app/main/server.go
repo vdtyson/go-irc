@@ -17,7 +17,7 @@ var user *auth.UserRecord
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		log.Fatal("$PORT must be set")
+		port = ":8080"
 	}
 	err := http.ListenAndServe(port, router)
 	if err != nil {
