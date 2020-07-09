@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"time"
 )
 
 const (
@@ -74,7 +75,7 @@ func (a *AuthRepository) RegisterUser(ctx context.Context, userRegInfo UserRegIn
 	userChannel := UserChannel{PrivilegeType: MEMBER}
 
 	userRef := a.firestoreClient.Collection(USERS_PATH).Doc(authUser.UID)
-	channelRef := a.firestoreClient.Collection(CHANNELS_PATH).Doc("#main").Collection(MEMBERS_PATH).Doc(authUser.UID)
+	channelRef := a.firestoreClient.Collection(CHANNELS_PATH).Doc("#main").Collection(MEMBERS_PATH).Doc(userRegInfo.Username)
 
 	batch := a.firestoreClient.Batch()
 
@@ -92,10 +93,129 @@ func (a *AuthRepository) RegisterUser(ctx context.Context, userRegInfo UserRegIn
 	return authUser, nil
 }
 
-func (a *AuthRepository) GetUser() {
-
+type ChannelRepository struct {
+	fsClient *firestore.Client
 }
 
-func (a *AuthRepository) Login() {
+func (c *ChannelRepository) CreateDirectMessageChannel(ctx context.Context, username1, username2 string) error {
 
+	channelName := fmt.Sprintf("!@%s@%s", username1, username2)
+	messages := make([]*Message, 0)
+
+	usernameRef := c.fsClient.Collection(USERNAMES_PATH)
+
+	var u1 Username
+	username1DocSnapshot, err := usernameRef.Doc(username1).Get(ctx)
+	if err != nil {
+		return err
+	}
+	err = username1DocSnapshot.DataTo(&u1)
+	if err != nil {
+		return err
+	}
+
+	var u2 Username
+	username2DocSnapshot, err := usernameRef.Doc(username2).Get(ctx)
+	if err != nil {
+		return err
+	}
+	err = username2DocSnapshot.DataTo(&u2)
+	if err != nil {
+		return err
+	}
+
+	channel := Channel{AccessType: CLOSED, LastMessages: messages}
+	userChannel := UserChannel{PrivilegeType: OWNER}
+
+	channelRef := c.fsClient.Collection(CHANNELS_PATH).Doc(channelName)
+	userRef := c.fsClient.Collection(USERS_PATH)
+
+	batch := c.fsClient.Batch()
+
+	_, err = batch.
+		Set(channelRef, &channel).
+		Create(channelRef.Collection(MEMBERS_PATH).Doc(username1), map[string]interface{}{}).
+		Create(channelRef.Collection(MEMBERS_PATH).Doc(username2), map[string]interface{}{}).
+		Set(userRef.Doc(u1.Uid).Collection(USER_CHANNELS_PATH).Doc(channelName), &userChannel).
+		Set(userRef.Doc(u2.Uid).Collection(USER_CHANNELS_PATH).Doc(channelName), &userChannel).
+		Commit(ctx)
+
+	return err
+}
+
+func (c *ChannelRepository) CreateGroupChannel(ctx context.Context, channelInput NewChannelInput) error {
+	channelName := fmt.Sprintf("#%s", channelInput.ChannelName)
+	messages := make([]*Message, 0)
+
+	channel := Channel{AccessType: channelInput.AccessType, LastMessages: messages}
+	userChannel := UserChannel{PrivilegeType: OWNER}
+
+	channelRef := c.fsClient.Collection(CHANNELS_PATH).Doc(channelName)
+	userChannelRef := c.fsClient.Collection(USERS_PATH).Doc(channelInput.OwnerUID).Collection(USER_CHANNELS_PATH).Doc(channelName)
+
+	batch := c.fsClient.Batch()
+
+	_, err := batch.
+		Set(channelRef, &channel).
+		Create(channelRef.Collection(MEMBERS_PATH).Doc(channelInput.OwnerUID), map[string]interface{}{}).
+		Set(userChannelRef, &userChannel).
+		Commit(ctx)
+
+	return err
+}
+
+// http://localhost:8080/{channel}/message
+func (c *ChannelRepository) NewMessage(ctx context.Context, messageInput MessageInput) error {
+	chanChatsRef := c.fsClient.Collection(CHANNEL_CHATS_PATH).Doc(messageInput.ChannelName).Collection(MESSAGES_PATH)
+	chanRef := c.fsClient.Collection(CHANNELS_PATH).Doc(messageInput.ChannelName)
+	chanDocSnapshot, err := chanRef.Get(ctx)
+	if err != nil && status.Code(err) != codes.NotFound {
+		return err
+	}
+
+	if !chanDocSnapshot.Exists() {
+		return fmt.Errorf("channel does not exist")
+	}
+
+	memberDocSnapshot, err := chanRef.Collection(MEMBERS_PATH).Doc(messageInput.SenderUsername).Get(ctx)
+	if err != nil && status.Code(err) != codes.NotFound {
+		return err
+	}
+
+	if !memberDocSnapshot.Exists() {
+		return fmt.Errorf("user does not have access to this channel")
+	}
+
+	var channel Channel
+	err = chanDocSnapshot.DataTo(&channel)
+	if err != nil {
+		return err
+	}
+
+	newMessage := Message{SenderUsername: messageInput.SenderUsername, SenderMessage: messageInput.Message, TimeSent: time.Now()}
+
+	if len(channel.LastMessages) >= 5 {
+		newRecents := []*Message{
+			channel.LastMessages[1],
+			channel.LastMessages[2],
+			channel.LastMessages[3],
+			channel.LastMessages[4],
+			&newMessage,
+		}
+
+		channel.LastMessages = newRecents
+	} else {
+		channel.LastMessages = append(channel.LastMessages, &newMessage)
+	}
+
+	_, err = chanRef.Set(ctx, &channel)
+	if err != nil {
+		return err
+	}
+	_, _, err = chanChatsRef.Add(ctx, &newMessage)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

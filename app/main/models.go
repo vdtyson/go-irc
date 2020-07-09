@@ -49,16 +49,7 @@ type Username struct {
 
 // channelChats -> [channelName] -> messages -> [messageId] // channelChats holds messages of a specific channel based off channelName
 type Message struct {
-	Value          string    `json:"message"`
-	SenderId       string    `json:"senderId"`
+	SenderMessage  string    `json:"message"`
 	SenderUsername string    `json:"senderUsername"`
 	TimeSent       time.Time `json:"timeSent"`
-}
-
-// Registration info for user
-type UserRegInfo struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	IsAdmin  bool   `json:"isAdmin"`
 }

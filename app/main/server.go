@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"firebase.google.com/go/v4/auth"
 	"github.com/gorilla/mux"
 	"google.golang.org/api/option"
 	"log"
@@ -10,6 +11,7 @@ import (
 
 var appInstance *App
 var router *mux.Router
+var user *auth.UserRecord
 
 func main() {
 	err := http.ListenAndServe(":8080", router)
@@ -20,6 +22,7 @@ func main() {
 func init() {
 	initAppInstance()
 	initRouter()
+	initUser()
 }
 
 func initRouter() {
@@ -33,4 +36,12 @@ func initAppInstance() {
 		panic(err)
 	}
 	appInstance = newAppInstance
+}
+
+func initUser() {
+	newUser, err := appInstance.authClient.GetUserByEmail(context.Background(), "versilistyson@gmail.com")
+	if err != nil {
+		panic(err)
+	}
+	user = newUser
 }
