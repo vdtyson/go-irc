@@ -319,15 +319,40 @@ type UserRepository struct {
 	fsClient *firestore.Client
 }
 
-/*func(u *UserRepository) GetAllUserChannels(ctx context.Context, input AllUserChannelsInput) ([]*UserChannel,error){
-	var username Username
-	usernameSnapshot, err := u.fsClient.Collection(USER
+func (u *UserRepository) GetAllUserChannels(ctx context.Context, usernameInput string) (map[string]map[string]interface{}, error) {
+	uid, err := getUidByUsername(ctx, u.fsClient, usernameInput)
+	if err != nil {
+		return nil, err
+	}
+
+	var userChannels = map[string]map[string]interface{}{}
+
+	userChannelDocs, err := u.fsClient.Collection(USERS_PATH).Doc(uid).Collection(USER_CHANNELS_PATH).Documents(ctx).GetAll()
+	for _, userChannelDoc := range userChannelDocs {
+		channelName := userChannelDoc.Ref.ID
+		userChannels[channelName] = userChannelDoc.Data()
+	}
+
+	return userChannels, nil
 }
 
-func getUsernameModel(ctx context.Context, fsClient *firestore.Client,key string) (*Username,error) {
+func getUidByUsername(ctx context.Context, fsClient *firestore.Client, key string) (string, error) {
 	var username Username
-	usernameSnapshot, err :=
-}*/
+	usernameSnapshot, err := fsClient.Collection(USERNAMES_PATH).Doc(key).Get(ctx)
+	if err != nil {
+		return "", err
+	}
+	err = usernameSnapshot.DataTo(&username)
+	if err != nil {
+		return "", err
+	}
+
+	if username.Uid == "" {
+		return "", fmt.Errorf("failed to get uid")
+	}
+	return username.Uid, err
+}
+
 // TODO: Kick user
 // TODO: Ban User
 // TODO: Get all user channels by username

@@ -43,17 +43,7 @@ type AddUserToChannelInput struct {
 	PrivilegeType string `json:"privilegeType"`
 }
 
-// http://localhost:8080/users/{username}/channels - GET TODO: Not yet implemented
-type AllUserChannelsInput struct {
-	Username string `json:"username"`
-}
-
-/*
-	PATHS without body
-*/
+/* PATHS without body */
 
 // New DM Channel: http://localhost:8080/channels/direct/{username1}/{username2} - POST
-
-func deleteLater() {
-	//TODO: Delete later
-}
+// All Channels a user is member of: http://localhost:8080/users/{username}/channels - GET TODO: Not yet implemented

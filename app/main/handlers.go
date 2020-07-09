@@ -107,3 +107,21 @@ func AddUserHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
+
+func GetUserChannelsHandler(w http.ResponseWriter, r *http.Request) {
+	username := mux.Vars(r)["username"]
+	userChannels, err := appInstance.userRepo.GetAllUserChannels(r.Context(), username)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	data, err := json.MarshalIndent(userChannels, JSON_PREFIX, JSON_INDENT)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	_, err = w.Write(data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
