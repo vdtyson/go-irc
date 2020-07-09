@@ -5,14 +5,14 @@ type UserRegInput struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	IsAdmin  bool   `json:"isAdmin"`
+	IsAdmin  bool   `json:"isUserAdmin"`
 }
 
 // http://localhost:8080/channel/new - POST
 type NewGroupChannelInput struct {
-	OwnerUID    string            `json:"ownerUID"`
-	ChannelName string            `json:"channelName"`
-	AccessType  ChannelAccessType `json:"accessType"`
+	OwnerUsername string            `json:"ownerUsername"`
+	ChannelName   string            `json:"channelName"`
+	AccessType    ChannelAccessType `json:"accessType"`
 }
 
 // http://localhost:8080/channels/message - POST
@@ -43,17 +43,13 @@ type AddUserToChannelInput struct {
 	PrivilegeType string `json:"privilegeType"`
 }
 
-// http://localhost:8080/users/{username}/channels - GET TODO: Not yet implemented
-type AllUserChannelsInput struct {
-	Username string `json:"username"`
+// http://localhost:8080/admin/ban - PUT
+type BanUserInput struct {
+	AdminUsername     string `json:"adminUsername"`
+	UserToBanUsername string `json:"userToBanUsername"`
 }
 
-/*
-	PATHS without body
-*/
+/* PATHS without body */
 
 // New DM Channel: http://localhost:8080/channels/direct/{username1}/{username2} - POST
-
-func deleteLater() {
-	//TODO: Delete later
-}
+// All Channels a user is member of: http://localhost:8080/users/{username}/channels - GET

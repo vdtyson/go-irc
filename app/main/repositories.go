@@ -99,6 +99,22 @@ type ChannelRepository struct {
 
 func (c *ChannelRepository) CreateDirectMessageChannel(ctx context.Context, username1, username2 string) error {
 
+	_, user1, err := getUserByUsername(ctx, c.fsClient, username1)
+	if err != nil {
+		return err
+	}
+	if user1.IsBanned {
+		return fmt.Errorf("can't create direct message channel. %s is banned", username1)
+	}
+
+	_, user2, err := getUserByUsername(ctx, c.fsClient, username2)
+	if err != nil {
+		return err
+	}
+	if user2.IsBanned {
+		return fmt.Errorf("can't create direct message channel. %s is banned", username2)
+	}
+
 	channelName := fmt.Sprintf("!@%s@%s", username1, username2)
 	messages := make([]*Message, 0)
 
@@ -143,21 +159,28 @@ func (c *ChannelRepository) CreateDirectMessageChannel(ctx context.Context, user
 	return err
 }
 
-func (c *ChannelRepository) CreateGroupChannel(ctx context.Context, channelInput NewGroupChannelInput) error {
-	channelName := fmt.Sprintf("#%s", channelInput.ChannelName)
+func (c *ChannelRepository) CreateGroupChannel(ctx context.Context, input NewGroupChannelInput) error {
+	uid, user, err := getUserByUsername(ctx, c.fsClient, input.OwnerUsername)
+	if err != nil {
+		return err
+	}
+	if user.IsBanned {
+		return fmt.Errorf("can't create new channels. user is banned")
+	}
+	channelName := fmt.Sprintf("#%s", input.ChannelName)
 	messages := make([]*Message, 0)
 
-	channel := Channel{AccessType: channelInput.AccessType, LastMessages: messages}
+	channel := Channel{AccessType: input.AccessType, LastMessages: messages}
 	userChannel := UserChannel{PrivilegeType: OWNER}
 
 	channelRef := c.fsClient.Collection(CHANNELS_PATH).Doc(channelName)
-	userChannelRef := c.fsClient.Collection(USERS_PATH).Doc(channelInput.OwnerUID).Collection(USER_CHANNELS_PATH).Doc(channelName)
+	userChannelRef := c.fsClient.Collection(USERS_PATH).Doc(uid).Collection(USER_CHANNELS_PATH).Doc(channelName)
 
 	batch := c.fsClient.Batch()
 
-	_, err := batch.
+	_, err = batch.
 		Set(channelRef, &channel).
-		Create(channelRef.Collection(MEMBERS_PATH).Doc(channelInput.OwnerUID), map[string]interface{}{}).
+		Create(channelRef.Collection(MEMBERS_PATH).Doc(input.OwnerUsername), map[string]interface{}{}).
 		Set(userChannelRef, &userChannel).
 		Commit(ctx)
 
@@ -166,8 +189,14 @@ func (c *ChannelRepository) CreateGroupChannel(ctx context.Context, channelInput
 
 // http://localhost:8080/channels/{channelName}/messages/all
 func (c *ChannelRepository) GetAllChannelMessages(ctx context.Context, input AllChannelMessagesInput) ([]*Message, error) {
-
-	_, err := c.fsClient.Collection(CHANNELS_PATH).Doc(input.ChannelName).Collection(MEMBERS_PATH).Doc(input.UserName).Get(ctx)
+	_, user, err := getUserByUsername(ctx, c.fsClient, input.UserName)
+	if err != nil {
+		return nil, err
+	}
+	if user.IsBanned {
+		return nil, fmt.Errorf("user was banned")
+	}
+	_, err = c.fsClient.Collection(CHANNELS_PATH).Doc(input.ChannelName).Collection(MEMBERS_PATH).Doc(input.UserName).Get(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -196,6 +225,14 @@ func (c *ChannelRepository) GetAllChannelMessages(ctx context.Context, input All
 
 // http://localhost:8080/{channel}/message
 func (c *ChannelRepository) NewMessage(ctx context.Context, messageInput NewMessageInput) error {
+	_, user, err := getUserByUsername(ctx, c.fsClient, messageInput.SenderUsername)
+	if err != nil {
+		return err
+	}
+	if user.IsBanned {
+		return fmt.Errorf("user is banned")
+	}
+
 	chanChatsRef := c.fsClient.Collection(CHANNEL_CHATS_PATH).Doc(messageInput.ChannelName).Collection(MESSAGES_PATH)
 	chanRef := c.fsClient.Collection(CHANNELS_PATH).Doc(messageInput.ChannelName)
 	chanDocSnapshot, err := chanRef.Get(ctx)
@@ -251,15 +288,7 @@ func (c *ChannelRepository) NewMessage(ctx context.Context, messageInput NewMess
 }
 
 func (c *ChannelRepository) KickUser(ctx context.Context, input KickUserInput) error {
-	// check if kicker is admin of channel
-	// check if user exists in channel
-	// delete channel from userChannel and member from [channelName] -> member
-	channelRef := c.fsClient.Collection(CHANNELS_PATH).Doc(input.ChannelName)
-	_, err := channelRef.Get(ctx)
-	if err != nil {
-		return err
-	}
-
+	// TODO:
 	return nil
 }
 
@@ -267,8 +296,13 @@ func (c *ChannelRepository) AddUser(ctx context.Context, input AddUserToChannelI
 	var ownerUsername Username
 	var userToAddUsername Username
 
+	_, userToAdd, err := getUserByUsername(ctx, c.fsClient, input.UserToAdd)
+	if userToAdd.IsBanned {
+		return fmt.Errorf("user to be added was banned")
+	}
+
 	channelRef := c.fsClient.Collection(CHANNELS_PATH).Doc(input.ChannelName)
-	_, err := channelRef.Get(ctx)
+	_, err = channelRef.Get(ctx)
 	if err != nil {
 		return err
 	}
@@ -319,15 +353,91 @@ type UserRepository struct {
 	fsClient *firestore.Client
 }
 
-/*func(u *UserRepository) GetAllUserChannels(ctx context.Context, input AllUserChannelsInput) ([]*UserChannel,error){
-	var username Username
-	usernameSnapshot, err := u.fsClient.Collection(USER
+func (u *UserRepository) GetAllUserChannels(ctx context.Context, usernameInput string) (map[string]map[string]interface{}, error) {
+	uid, user, err := getUserByUsername(ctx, u.fsClient, usernameInput)
+	if err != nil {
+		return nil, err
+	}
+	if user.IsBanned {
+		return nil, fmt.Errorf("user is banned")
+	}
+
+	var userChannels = map[string]map[string]interface{}{}
+
+	userChannelDocs, err := u.fsClient.Collection(USERS_PATH).Doc(uid).Collection(USER_CHANNELS_PATH).Documents(ctx).GetAll()
+	for _, userChannelDoc := range userChannelDocs {
+		channelName := userChannelDoc.Ref.ID
+		userChannels[channelName] = userChannelDoc.Data()
+	}
+
+	return userChannels, nil
 }
 
-func getUsernameModel(ctx context.Context, fsClient *firestore.Client,key string) (*Username,error) {
+type AdminRepository struct {
+	fsClient *firestore.Client
+}
+
+func (a *AdminRepository) BanUser(ctx context.Context, input BanUserInput) error {
+	_, admin, err := getUserByUsername(ctx, a.fsClient, input.AdminUsername)
+	if err != nil {
+		return err
+	}
+	if !admin.IsAdmin {
+		return fmt.Errorf("this user is not an admin")
+	}
+
+	uid, userToBan, err := getUserByUsername(ctx, a.fsClient, input.UserToBanUsername)
+	if err != nil {
+		return err
+	}
+	if userToBan.IsAdmin {
+		return fmt.Errorf("can't ban an admin")
+	}
+	if userToBan.IsBanned {
+		return fmt.Errorf("user already banned")
+	}
+
+	_, err = a.fsClient.Collection(USERS_PATH).Doc(uid).Set(ctx, map[string]interface{}{"IsBanned": true}, firestore.MergeAll)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Helpers
+func getUserByUsername(ctx context.Context, fsClient *firestore.Client, usernameKey string) (string, *User, error) {
+	uid, err := getUidByUsername(ctx, fsClient, usernameKey)
+	if err != nil {
+		return "", nil, err
+	}
+
+	var user User
+	userSnapshot, err := fsClient.Collection(USERS_PATH).Doc(uid).Get(ctx)
+	err = userSnapshot.DataTo(&user)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return uid, &user, nil
+}
+
+func getUidByUsername(ctx context.Context, fsClient *firestore.Client, usernameKey string) (string, error) {
 	var username Username
-	usernameSnapshot, err :=
-}*/
+	usernameSnapshot, err := fsClient.Collection(USERNAMES_PATH).Doc(usernameKey).Get(ctx)
+	if err != nil {
+		return "", err
+	}
+	err = usernameSnapshot.DataTo(&username)
+	if err != nil {
+		return "", err
+	}
+
+	if username.Uid == "" {
+		return "", fmt.Errorf("failed to get uid")
+	}
+	return username.Uid, err
+}
+
 // TODO: Kick user
 // TODO: Ban User
 // TODO: Get all user channels by username

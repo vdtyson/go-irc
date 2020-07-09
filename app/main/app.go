@@ -14,6 +14,8 @@ type App struct {
 	firestoreClient  *firestore.Client
 	authRepo         *AuthRepository
 	channelRepo      *ChannelRepository
+	userRepo         *UserRepository
+	adminRepo        *AdminRepository
 }
 
 func NewAppInstance(ctx context.Context, config *firebase.Config, options ...option.ClientOption) (*App, error) {
@@ -34,6 +36,8 @@ func NewAppInstance(ctx context.Context, config *firebase.Config, options ...opt
 
 	authRepo := &AuthRepository{firestoreClient: firestoreClient, authClient: authClient}
 	channelRepo := &ChannelRepository{fsClient: firestoreClient}
+	userRepo := &UserRepository{firestoreClient}
+	adminRepo := &AdminRepository{firestoreClient}
 
 	return &App{
 		firebaseInstance: fbApp,
@@ -41,5 +45,7 @@ func NewAppInstance(ctx context.Context, config *firebase.Config, options ...opt
 		firestoreClient:  firestoreClient,
 		authRepo:         authRepo,
 		channelRepo:      channelRepo,
+		userRepo:         userRepo,
+		adminRepo:        adminRepo,
 	}, nil
 }
