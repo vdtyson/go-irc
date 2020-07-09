@@ -165,7 +165,13 @@ func (c *ChannelRepository) CreateGroupChannel(ctx context.Context, channelInput
 }
 
 // http://localhost:8080/channels/{channelName}/messages/all
-func (c *ChannelRepository) GetAllChannelMessages(ctx context.Context, input ChannelNameInput) ([]*Message, error) {
+func (c *ChannelRepository) GetAllChannelMessages(ctx context.Context, input AllChannelMessagesInput) ([]*Message, error) {
+
+	_, err := c.fsClient.Collection(CHANNELS_PATH).Doc(input.ChannelName).Collection(MEMBERS_PATH).Doc(input.UserName).Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	messageRefs, err := c.fsClient.Collection(CHANNEL_CHATS_PATH).Doc(input.ChannelName).Collection(MESSAGES_PATH).DocumentRefs(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -254,10 +260,75 @@ func (c *ChannelRepository) KickUser(ctx context.Context, input KickUserInput) e
 		return err
 	}
 
-	//kickerRef := c.fsClient.Collection(CHANNELS_PATH).Where("Username","==")'
 	return nil
 }
 
-// kick user
-// ban user from channel
-// add new user
+func (c *ChannelRepository) AddUser(ctx context.Context, input AddUserInput) error {
+	var ownerUsername Username
+	var userToAddUsername Username
+
+	channelRef := c.fsClient.Collection(CHANNELS_PATH).Doc(input.ChannelName)
+	_, err := channelRef.Get(ctx)
+	if err != nil {
+		return err
+	}
+
+	ownerUserNameSnapshot, err := c.fsClient.Collection(USERNAMES_PATH).Doc(input.OwnerUsername).Get(ctx)
+	if err != nil {
+		return err
+	}
+	err = ownerUserNameSnapshot.DataTo(&ownerUsername)
+	if err != nil {
+		return err
+	}
+
+	userToAddUsernameSnapshot, err := c.fsClient.Collection(USERNAMES_PATH).Doc(input.UserToAdd).Get(ctx)
+	if err != nil {
+		return err
+	}
+	err = userToAddUsernameSnapshot.DataTo(&userToAddUsername)
+	if err != nil {
+		return err
+	}
+
+	var ownerUserChannel UserChannel
+	ownerUserChannelSnapshot, err := c.fsClient.Collection(USERS_PATH).Doc(ownerUsername.Uid).Collection(USER_CHANNELS_PATH).Doc(input.ChannelName).Get(ctx)
+	if err != nil {
+		return err
+	}
+	err = ownerUserChannelSnapshot.DataTo(&ownerUserChannel)
+	if err != nil {
+		return err
+	}
+
+	if ownerUserChannel.PrivilegeType != OWNER {
+		return fmt.Errorf("user is not an owner of this channel")
+	}
+
+	userChannel := UserChannel{PrivilegeType: UserPrivilegeType(input.PrivilegeType)}
+	batch := c.fsClient.Batch()
+	_, err = batch.
+		Set(c.fsClient.Collection(USERS_PATH).Doc(userToAddUsername.Uid).Collection(USER_CHANNELS_PATH).Doc(input.ChannelName), &userChannel).
+		Create(channelRef.Collection(MEMBERS_PATH).Doc(input.UserToAdd), map[string]interface{}{}).
+		Commit(ctx)
+
+	return err
+}
+
+type UserRepository struct {
+	fsClient *firestore.Client
+}
+
+/*func(u *UserRepository) GetAllUserChannels(ctx context.Context, input AllUserChannelsInput) ([]*UserChannel,error){
+	var username Username
+	usernameSnapshot, err := u.fsClient.Collection(USER
+}
+
+func getUsernameModel(ctx context.Context, fsClient *firestore.Client,key string) (*Username,error) {
+	var username Username
+	usernameSnapshot, err :=
+}*/
+// TODO: Kick user
+// TODO: Ban User
+// TODO: Get all user channels by username
+// TODO: Join channel

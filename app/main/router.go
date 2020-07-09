@@ -11,5 +11,6 @@ func NewRouter() *mux.Router {
 	router.HandleFunc("/channels/message", NewMessageHandler).Methods("POST")
 	router.HandleFunc("/channels/direct/{username1}/{username2}", CreateDMChannelHandler).Methods("POST")
 	router.HandleFunc("/channels/messages", GetAllMessagesHandler).Methods("GET")
+	router.HandleFunc("/channels/users", AddUserHandler).Methods("PUT")
 	return router
 }
