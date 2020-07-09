@@ -46,7 +46,7 @@ func (u *UsernameExistsError) Error() string {
 }*/
 // true if account created successfully
 
-func (a *AuthRepository) RegisterUser(ctx context.Context, userRegInfo UserRegInfo) (*auth.UserRecord, error) {
+func (a *AuthRepository) RegisterUser(ctx context.Context, userRegInfo UserRegInput) (*auth.UserRecord, error) {
 
 	fmt.Println("started method registerUser()")
 	userNameRef := a.firestoreClient.Collection(USERNAMES_PATH).Doc(userRegInfo.Username)
@@ -143,7 +143,7 @@ func (c *ChannelRepository) CreateDirectMessageChannel(ctx context.Context, user
 	return err
 }
 
-func (c *ChannelRepository) CreateGroupChannel(ctx context.Context, channelInput NewChannelInput) error {
+func (c *ChannelRepository) CreateGroupChannel(ctx context.Context, channelInput NewGroupChannelInput) error {
 	channelName := fmt.Sprintf("#%s", channelInput.ChannelName)
 	messages := make([]*Message, 0)
 
@@ -195,7 +195,7 @@ func (c *ChannelRepository) GetAllChannelMessages(ctx context.Context, input All
 }
 
 // http://localhost:8080/{channel}/message
-func (c *ChannelRepository) NewMessage(ctx context.Context, messageInput MessageInput) error {
+func (c *ChannelRepository) NewMessage(ctx context.Context, messageInput NewMessageInput) error {
 	chanChatsRef := c.fsClient.Collection(CHANNEL_CHATS_PATH).Doc(messageInput.ChannelName).Collection(MESSAGES_PATH)
 	chanRef := c.fsClient.Collection(CHANNELS_PATH).Doc(messageInput.ChannelName)
 	chanDocSnapshot, err := chanRef.Get(ctx)
@@ -263,7 +263,7 @@ func (c *ChannelRepository) KickUser(ctx context.Context, input KickUserInput) e
 	return nil
 }
 
-func (c *ChannelRepository) AddUser(ctx context.Context, input AddUserInput) error {
+func (c *ChannelRepository) AddUser(ctx context.Context, input AddUserToChannelInput) error {
 	var ownerUsername Username
 	var userToAddUsername Username
 

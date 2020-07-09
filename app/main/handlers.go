@@ -14,7 +14,7 @@ const (
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
-	var userRegInfo UserRegInfo
+	var userRegInfo UserRegInput
 
 	err := json.NewDecoder(r.Body).Decode(&userRegInfo)
 	if err != nil {
@@ -28,7 +28,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateGroupChannelHandler(w http.ResponseWriter, r *http.Request) {
-	var newChannelInput NewChannelInput
+	var newChannelInput NewGroupChannelInput
 
 	err := json.NewDecoder(r.Body).Decode(&newChannelInput)
 	if err != nil {
@@ -42,7 +42,7 @@ func CreateGroupChannelHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func NewMessageHandler(w http.ResponseWriter, r *http.Request) {
-	var messageInput MessageInput
+	var messageInput NewMessageInput
 
 	err := json.NewDecoder(r.Body).Decode(&messageInput)
 	if err != nil {
@@ -89,7 +89,7 @@ func GetAllMessagesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddUserHandler(w http.ResponseWriter, r *http.Request) {
-	var addUserInput AddUserInput
+	var addUserInput AddUserToChannelInput
 
 	err := json.NewDecoder(r.Body).Decode(&addUserInput)
 	if err != nil {
