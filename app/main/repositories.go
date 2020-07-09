@@ -243,3 +243,8 @@ func (c *ChannelRepository) NewMessage(ctx context.Context, messageInput Message
 
 	return nil
 }
+
+// ban user
+// add user to channel
+// kick user from channel
+// change user privilege type
