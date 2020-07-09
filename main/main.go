@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"firebase.google.com/go/v4/auth"
+	"fmt"
 	"github.com/gorilla/mux"
 	"google.golang.org/api/option"
 	"log"
@@ -17,9 +18,9 @@ var user *auth.UserRecord
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = ":8080"
+		fmt.Errorf("port must be set")
 	}
-	err := http.ListenAndServe(port, router)
+	err := http.ListenAndServe(":"+port, router)
 	if err != nil {
 		log.Fatal(err)
 	}
