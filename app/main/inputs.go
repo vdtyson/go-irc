@@ -23,7 +23,8 @@ type MessageInput struct {
 }
 
 // http://localhost:8080/users/{username1}
-type ChannelNameInput struct {
+type AllChannelMessagesInput struct {
+	UserName    string `json:"username"`
 	ChannelName string `json:"channelName"`
 }
 
@@ -38,4 +39,8 @@ type AddUserInput struct {
 	OwnerUsername string `json:"ownerUsername"`
 	UserToAdd     string `json:"userToAdd"`
 	PrivilegeType string `json:"privilegeType"`
+}
+
+type AllUserChannelsInput struct {
+	Username string `json:"username"`
 }

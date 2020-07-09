@@ -66,7 +66,7 @@ func CreateDMChannelHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAllMessagesHandler(w http.ResponseWriter, r *http.Request) {
-	var channelNameInput ChannelNameInput
+	var channelNameInput AllChannelMessagesInput
 	err := json.NewDecoder(r.Body).Decode(&channelNameInput)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

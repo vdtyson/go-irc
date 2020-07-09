@@ -165,7 +165,13 @@ func (c *ChannelRepository) CreateGroupChannel(ctx context.Context, channelInput
 }
 
 // http://localhost:8080/channels/{channelName}/messages/all
-func (c *ChannelRepository) GetAllChannelMessages(ctx context.Context, input ChannelNameInput) ([]*Message, error) {
+func (c *ChannelRepository) GetAllChannelMessages(ctx context.Context, input AllChannelMessagesInput) ([]*Message, error) {
+
+	_, err := c.fsClient.Collection(CHANNELS_PATH).Doc(input.ChannelName).Collection(MEMBERS_PATH).Doc(input.UserName).Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	messageRefs, err := c.fsClient.Collection(CHANNEL_CHATS_PATH).Doc(input.ChannelName).Collection(MESSAGES_PATH).DocumentRefs(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -309,6 +315,19 @@ func (c *ChannelRepository) AddUser(ctx context.Context, input AddUserInput) err
 	return err
 }
 
+type UserRepository struct {
+	fsClient *firestore.Client
+}
+
+/*func(u *UserRepository) GetAllUserChannels(ctx context.Context, input AllUserChannelsInput) ([]*UserChannel,error){
+	var username Username
+	usernameSnapshot, err := u.fsClient.Collection(USER
+}
+
+func getUsernameModel(ctx context.Context, fsClient *firestore.Client,key string) (*Username,error) {
+	var username Username
+	usernameSnapshot, err :=
+}*/
 // TODO: Kick user
 // TODO: Ban User
 // TODO: Get all user channels by username
