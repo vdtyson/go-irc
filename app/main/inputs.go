@@ -53,3 +53,7 @@ type AllUserChannelsInput struct {
 */
 
 // New DM Channel: http://localhost:8080/channels/direct/{username1}/{username2} - POST
+
+func deleteLater() {
+	//TODO: Delete later
+}
