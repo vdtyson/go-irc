@@ -12,6 +12,12 @@ const (
 	JSON_INDENT = "    "
 )
 
+// GetNewestMessage godoc
+// @Summary Get newest message from channel
+// @Param channelMessagesInput body AllChannelMessagesInput true "Channel messages input"
+// @Accept json
+// @Router /channels/messages/newest [post]
+// @Tags channels
 func GetNewestMessageHandler(w http.ResponseWriter, r *http.Request) {
 	var messageInput AllChannelMessagesInput
 	err := json.NewDecoder(r.Body).Decode(&messageInput)
@@ -31,6 +37,13 @@ func GetNewestMessageHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(data)
 }
+
+// RegisterUser godoc
+// @Summary Register a new user
+// @Param userRegistrationInput body UserRegInput true "User registration info"
+// @Accept json
+// @Router /register [post]
+// @Tags users
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	var userRegInfo UserRegInput
@@ -46,6 +59,12 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// CreateGroupChannel godoc
+// @Summary Create a group channel
+// @Param newGroupChannelInput body NewGroupChannelInput true "Input for new group channel"
+// @Accept json
+// @Router /channels/new [post]
+// @Tags channels
 func CreateGroupChannelHandler(w http.ResponseWriter, r *http.Request) {
 	var newChannelInput NewGroupChannelInput
 
@@ -60,6 +79,11 @@ func CreateGroupChannelHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// NewMessage godoc
+// @Summary Send new message to channel
+// @Param newMessageInput body NewMessageInput true "Input for new message"
+// @Tags users
+// @Router /channels/message [post]
 func NewMessageHandler(w http.ResponseWriter, r *http.Request) {
 	var messageInput NewMessageInput
 

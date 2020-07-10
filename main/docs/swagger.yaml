@@ -1,0 +1,102 @@
+definitions:
+  main.AllChannelMessagesInput:
+    properties:
+      channelName:
+        type: string
+      username:
+        type: string
+    type: object
+  main.NewGroupChannelInput:
+    properties:
+      accessType:
+        type: string
+      channelName:
+        type: string
+      ownerUsername:
+        type: string
+    type: object
+  main.NewMessageInput:
+    properties:
+      channelName:
+        type: string
+      message:
+        type: string
+      senderUsername:
+        type: string
+    type: object
+  main.UserRegInput:
+    properties:
+      email:
+        type: string
+      isUserAdmin:
+        type: boolean
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+host: https://mthree-go-irc.herokuapp.com
+info:
+  contact:
+    email: versilistyson@gmail.com
+  description: This is a server created by Matt,Prithvi, and Versilis for the final mthree assessment
+  license: {}
+  termsOfService: http://swagger.io/terms/
+  title: Go-IRC API
+  version: "1.0"
+paths:
+  /channels/message:
+    post:
+      parameters:
+      - description: Input for new message
+        in: body
+        name: newMessageInput
+        required: true
+        schema:
+          $ref: '#/definitions/main.NewMessageInput'
+      summary: Send new message to channel
+      tags:
+      - users
+  /channels/messages/newest:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Channel messages input
+        in: body
+        name: channelMessagesInput
+        required: true
+        schema:
+          $ref: '#/definitions/main.AllChannelMessagesInput'
+      summary: Get newest message from channel
+      tags:
+      - channels
+  /channels/new:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Input for new group channel
+        in: body
+        name: newGroupChannelInput
+        required: true
+        schema:
+          $ref: '#/definitions/main.NewGroupChannelInput'
+      summary: Create a group channel
+      tags:
+      - channels
+  /register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User registration info
+        in: body
+        name: userRegistrationInput
+        required: true
+        schema:
+          $ref: '#/definitions/main.UserRegInput'
+      summary: Register a new user
+      tags:
+      - users
+swagger: "2.0"
