@@ -67,10 +67,16 @@ func CreateDMChannelHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetAllMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	var channelNameInput AllChannelMessagesInput
+	var body []byte
+	r.Body.Read(body)
+	fmt.Println("body:", string(body))
+
 	err := json.NewDecoder(r.Body).Decode(&channelNameInput)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
+
+	fmt.Printf("channel name input: %+v\n", channelNameInput)
 
 	messages, err := appInstance.channelRepo.GetAllChannelMessages(r.Context(), channelNameInput)
 	if err != nil {

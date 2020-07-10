@@ -423,7 +423,11 @@ func getUserByUsername(ctx context.Context, fsClient *firestore.Client, username
 
 func getUidByUsername(ctx context.Context, fsClient *firestore.Client, usernameKey string) (string, error) {
 	var username Username
-	usernameSnapshot, err := fsClient.Collection(USERNAMES_PATH).Doc(usernameKey).Get(ctx)
+	userNameRef := fsClient.Collection(USERNAMES_PATH).Doc(usernameKey)
+	fmt.Println(userNameRef.Path)
+
+	usernameSnapshot, err := userNameRef.Get(ctx)
+
 	if err != nil {
 		return "", err
 	}
