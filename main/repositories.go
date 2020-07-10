@@ -292,6 +292,38 @@ func (c *ChannelRepository) KickUser(ctx context.Context, input KickUserInput) e
 	return nil
 }
 
+func (c *ChannelRepository) GetNewestMessage(ctx context.Context, input AllChannelMessagesInput) (*Message, error) {
+	uid, user, err := getUserByUsername(ctx, c.fsClient, input.UserName)
+	if err != nil {
+		return nil, err
+	}
+	if user.IsBanned {
+		return nil, fmt.Errorf("user was banned")
+	}
+
+	_, err = c.fsClient.Collection(USERS_PATH).Doc(uid).Collection(USER_CHANNELS_PATH).Doc(input.ChannelName).Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	channelSnapshot, err := c.fsClient.Collection(CHANNELS_PATH).Doc(input.ChannelName).Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var channel Channel
+	err = channelSnapshot.DataTo(&channel)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(channel.LastMessages) == 0 {
+		return nil, nil
+	} else {
+		return channel.LastMessages[len(channel.LastMessages)-1], nil
+	}
+}
+
 func (c *ChannelRepository) AddUser(ctx context.Context, input AddUserToChannelInput) error {
 	var ownerUsername Username
 	var userToAddUsername Username

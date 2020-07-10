@@ -12,6 +12,25 @@ const (
 	JSON_INDENT = "    "
 )
 
+func GetNewestMessageHandler(w http.ResponseWriter, r *http.Request) {
+	var messageInput AllChannelMessagesInput
+	err := json.NewDecoder(r.Body).Decode(&messageInput)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	newestMessage, err := appInstance.channelRepo.GetNewestMessage(r.Context(), messageInput)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	data, err := json.MarshalIndent(newestMessage, JSON_PREFIX, JSON_INDENT)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	w.Write(data)
+}
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	var userRegInfo UserRegInput
