@@ -140,7 +140,7 @@ func (c *ChannelRepository) CreateDirectMessageChannel(ctx context.Context, user
 		return err
 	}
 
-	channel := Channel{AccessType: CLOSED, LastMessages: messages}
+	channel := Channel{AccessType: DIRECT_MESSAGE, LastMessages: messages}
 	userChannel := UserChannel{PrivilegeType: OWNER}
 
 	channelRef := c.fsClient.Collection(CHANNELS_PATH).Doc(channelName)

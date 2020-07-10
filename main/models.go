@@ -38,10 +38,10 @@ type UserChannel struct {
 // channels -> [#channelname]
 type ChannelAccessType string // defines how users can join; channel owner can set this
 const (
-	CLOSED = ChannelAccessType("DIRECT_MESSAGE") // direct message
-	INVITE = ChannelAccessType("INVITE")         // channel is invite only
-	SECRET = ChannelAccessType("SECRET")         // can join through secret key
-	OPEN   = ChannelAccessType("PUBLIC")         // can join through channel name
+	DIRECT_MESSAGE = ChannelAccessType("DIRECT_MESSAGE") // direct message
+	INVITE         = ChannelAccessType("INVITE")         // channel is invite only
+	SECRET         = ChannelAccessType("SECRET")         // can join through secret key
+	PUBLIC         = ChannelAccessType("PUBLIC")         // can join through channel name
 )
 
 type Channel struct {
