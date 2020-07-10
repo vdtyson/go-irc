@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gorilla/mux"
-	"net/http"
+	"github.com/swaggo/http-swagger"
 )
 
 func NewRouter() *mux.Router {
@@ -21,12 +21,6 @@ func NewRouter() *mux.Router {
 	// admin
 	router.HandleFunc("/admin/ban", BanUserHandler).Methods("PUT")
 
-	router.HandleFunc("/", HelloHandler).Methods("GET")
+	router.PathPrefix("/").Handler(httpSwagger.WrapHandler)
 	return router
-}
-
-func HelloHandler(w http.ResponseWriter, r *http.Request) {
-
-	w.Write([]byte("Welcome!"))
-
 }

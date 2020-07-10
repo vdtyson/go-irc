@@ -1,0 +1,159 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a server created by Matt,Prithvi, and Versilis for the final mthree assessment",
+        "title": "Go-IRC API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "email": "versilistyson@gmail.com"
+        },
+        "license": {},
+        "version": "1.0"
+    },
+    "host": "https://mthree-go-irc.herokuapp.com",
+    "paths": {
+        "/channels/message": {
+            "post": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Send new message to channel",
+                "parameters": [
+                    {
+                        "description": "Input for new message",
+                        "name": "newMessageInput",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.NewMessageInput"
+                        }
+                    }
+                ]
+            }
+        },
+        "/channels/messages/newest": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "channels"
+                ],
+                "summary": "Get newest message from channel",
+                "parameters": [
+                    {
+                        "description": "Channel messages input",
+                        "name": "channelMessagesInput",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.AllChannelMessagesInput"
+                        }
+                    }
+                ]
+            }
+        },
+        "/channels/new": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "channels"
+                ],
+                "summary": "Create a group channel",
+                "parameters": [
+                    {
+                        "description": "Input for new group channel",
+                        "name": "newGroupChannelInput",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.NewGroupChannelInput"
+                        }
+                    }
+                ]
+            }
+        },
+        "/register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "User registration info",
+                        "name": "userRegistrationInput",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.UserRegInput"
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "definitions": {
+        "main.AllChannelMessagesInput": {
+            "type": "object",
+            "properties": {
+                "channelName": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.NewGroupChannelInput": {
+            "type": "object",
+            "properties": {
+                "accessType": {
+                    "type": "string"
+                },
+                "channelName": {
+                    "type": "string"
+                },
+                "ownerUsername": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.NewMessageInput": {
+            "type": "object",
+            "properties": {
+                "channelName": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "senderUsername": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.UserRegInput": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "isUserAdmin": {
+                    "type": "boolean"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

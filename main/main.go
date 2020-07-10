@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "app/main/docs"
 	"context"
 	"github.com/gorilla/mux"
 	"google.golang.org/api/option"
@@ -12,6 +13,14 @@ import (
 var appInstance *App
 var router *mux.Router
 
+// @title Go-IRC API
+// @version 1.0
+// @description This is a server created by Matt,Prithvi, and Versilis for the final mthree assessment
+// @termsOfService http://swagger.io/terms/
+
+// @contact.email versilistyson@gmail.com
+
+// @host https://mthree-go-irc.herokuapp.com
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
